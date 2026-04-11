@@ -178,3 +178,8 @@ npm run dev
 
 현재 환경에서는 `node`, `npm`이 로컬에 설치되어 있지 않아 `next build`나 `lint`는 직접 실행하지 못했습니다.
 가장 빠른 확인 경로는 Docker 실행입니다.
+
+## 관련 문서
+
+- 프로젝트 개요: [/Users/seochanjin/workspace/notebooklm/infra-config/README.md](/Users/seochanjin/workspace/notebooklm/infra-config/README.md)
+- 아키텍처 문서: [/Users/seochanjin/workspace/notebooklm/infra-config/docs/architecture.md](/Users/seochanjin/workspace/notebooklm/infra-config/docs/architecture.md)
