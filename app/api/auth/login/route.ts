@@ -11,9 +11,14 @@ export async function POST(request: Request) {
     const response = await loginViaCoreApi(payload);
     const userId = getUserIdFromToken(response.token);
 
-    await saveSession({ token: response.token, userId });
+    await saveSession({
+      token: response.token,
+      refreshToken: response.refreshToken,
+      userId,
+      role: response.role,
+    });
 
-    return NextResponse.json({ ok: true, userId });
+    return NextResponse.json({ ok: true, userId, role: response.role });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "로그인 처리에 실패했습니다.";

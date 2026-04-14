@@ -1,6 +1,10 @@
+export type UserRole = "USER" | "ADMIN";
+
 export type Session = {
   token: string;
+  refreshToken?: string;
   userId: number;
+  role: UserRole;
 };
 
 export type Notebook = {
@@ -32,6 +36,8 @@ export type SignupResponse = {
 
 export type LoginResponse = {
   token: string;
+  refreshToken: string;
+  role: UserRole;
 };
 
 export type DocumentItem = {
@@ -66,4 +72,29 @@ export type ReferenceChunk = {
 export type NotebookChatResponse = {
   answer: string;
   reference_chunks: ReferenceChunk[];
+};
+
+export type AiRequestType = "PDF_SUMMARY" | "CHAT" | "CHAT_SUMMARY";
+
+export type AdminAiCallLogItem = {
+  id: number;
+  requestId: string;
+  requestType: AiRequestType;
+  notebookId: number | null;
+  documentId: number | null;
+  success: boolean;
+  latencyMs: number | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  referenceCount: number | null;
+  createdAt: string;
+};
+
+export type AdminAiCallLogPage = {
+  content: AdminAiCallLogItem[];
+  page: number;
+  size: number;
+  totalPages: number;
+  totalElements: number;
+  hasNext: boolean;
 };

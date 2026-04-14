@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { askNotebookQuestionForCurrentUser, fetchChatHistory } from "@/lib/api/core-api";
-import { requireSession } from "@/lib/auth/session";
+import { requireUserSession } from "@/lib/auth/session";
 
 type RouteContext = {
   params: Promise<{
@@ -21,7 +21,7 @@ function parseNotebookId(id: string) {
 
 export async function GET(_: Request, context: RouteContext) {
   try {
-    const session = await requireSession();
+    const session = await requireUserSession();
     const { id } = await context.params;
     const notebookId = parseNotebookId(id);
     const history = await fetchChatHistory(notebookId, session.token);
@@ -37,7 +37,7 @@ export async function GET(_: Request, context: RouteContext) {
 
 export async function POST(request: Request, context: RouteContext) {
   try {
-    await requireSession();
+    await requireUserSession();
     const { id } = await context.params;
     const notebookId = parseNotebookId(id);
     const body = (await request.json()) as { question?: string };
