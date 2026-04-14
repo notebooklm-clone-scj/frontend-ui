@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { AuthForm } from "@/components/auth/auth-form";
-import { getSession } from "@/lib/auth/session";
+import { getHomePathByRole, getSession } from "@/lib/auth/session";
 
 type LoginPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -11,7 +11,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const session = await getSession();
 
   if (session) {
-    redirect("/workspace");
+    redirect(getHomePathByRole(session.role));
   }
 
   const resolvedSearchParams = searchParams ? await searchParams : {};

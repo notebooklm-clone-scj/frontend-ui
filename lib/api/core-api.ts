@@ -1,5 +1,7 @@
-import { requireSession } from "@/lib/auth/session";
+import { requireAdminSession, requireSession } from "@/lib/auth/session";
 import type {
+  AdminAiCallLogPage,
+  AiRequestType,
   ChatHistoryItem,
   DocumentItem,
   LoginResponse,
@@ -198,4 +200,55 @@ export async function askNotebookQuestionForCurrentUser(
   });
 
   return (await response.json()) as NotebookChatResponse;
+}
+
+type AdminAiCallLogFilters = {
+  success?: boolean;
+  requestType?: AiRequestType;
+  notebookId?: number;
+  documentId?: number;
+  page?: number;
+  size?: number;
+};
+
+export async function fetchAdminAiCallLogs(
+  filters: AdminAiCallLogFilters = {},
+) {
+  const session = await requireAdminSession();
+  const params = new URLSearchParams();
+
+  if (typeof filters.success === "boolean") {
+    params.set("success", String(filters.success));
+  }
+
+  if (filters.requestType) {
+    params.set("requestType", filters.requestType);
+  }
+
+  if (typeof filters.notebookId === "number") {
+    params.set("notebookId", String(filters.notebookId));
+  }
+
+  if (typeof filters.documentId === "number") {
+    params.set("documentId", String(filters.documentId));
+  }
+
+  if (typeof filters.page === "number") {
+    params.set("page", String(filters.page));
+  }
+
+  if (typeof filters.size === "number") {
+    params.set("size", String(filters.size));
+  }
+
+  const query = params.toString();
+  const path = query
+    ? `/api/v1/admin/ai-call-logs?${query}`
+    : "/api/v1/admin/ai-call-logs";
+
+  const response = await coreApiFetch(path, {
+    token: session.token,
+  });
+
+  return (await response.json()) as AdminAiCallLogPage;
 }

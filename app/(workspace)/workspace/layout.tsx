@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 
-import { requireSession } from "@/lib/auth/session";
+import { requireUserSession } from "@/lib/auth/session";
 
 export default async function WorkspaceLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  await requireSession();
+  await requireUserSession();
 
   return children;
 }

@@ -1,9 +1,17 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import type { Session } from "@/lib/types";
+import type { Session, UserRole } from "@/lib/types";
 
 const SESSION_COOKIE_NAME = "notebooklm_session";
+
+function isUserRole(value: unknown): value is UserRole {
+  return value === "USER" || value === "ADMIN";
+}
+
+export function getHomePathByRole(role: UserRole) {
+  return role === "ADMIN" ? "/admin" : "/workspace";
+}
 
 export async function getSession(): Promise<Session | null> {
   const cookieStore = await cookies();
@@ -14,7 +22,23 @@ export async function getSession(): Promise<Session | null> {
   }
 
   try {
-    return JSON.parse(rawValue) as Session;
+    const parsed = JSON.parse(rawValue) as Partial<Session>;
+
+    if (
+      typeof parsed.token !== "string" ||
+      typeof parsed.userId !== "number" ||
+      !isUserRole(parsed.role)
+    ) {
+      return null;
+    }
+
+    return {
+      token: parsed.token,
+      refreshToken:
+        typeof parsed.refreshToken === "string" ? parsed.refreshToken : undefined,
+      userId: parsed.userId,
+      role: parsed.role,
+    };
   } catch {
     return null;
   }
@@ -25,6 +49,26 @@ export async function requireSession() {
 
   if (!session) {
     redirect("/login");
+  }
+
+  return session;
+}
+
+export async function requireUserSession() {
+  const session = await requireSession();
+
+  if (session.role === "ADMIN") {
+    redirect("/admin");
+  }
+
+  return session;
+}
+
+export async function requireAdminSession() {
+  const session = await requireSession();
+
+  if (session.role !== "ADMIN") {
+    redirect(getHomePathByRole(session.role));
   }
 
   return session;

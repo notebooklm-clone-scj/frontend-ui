@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { createNotebook, fetchNotebooks } from "@/lib/api/core-api";
-import { requireSession } from "@/lib/auth/session";
+import { requireUserSession } from "@/lib/auth/session";
 
 export async function GET() {
   try {
-    const session = await requireSession();
+    const session = await requireUserSession();
     const notebooks = await fetchNotebooks(session.userId, session.token);
 
     return NextResponse.json({ ok: true, notebooks });
@@ -19,7 +19,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    await requireSession();
+    await requireUserSession();
     const body = (await request.json()) as { title?: string };
     const title = body.title?.trim();
 

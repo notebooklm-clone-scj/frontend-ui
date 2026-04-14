@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 
+import type { UserRole } from "@/lib/types";
+
 type AuthFormProps = {
   mode: "login" | "signup";
   registered?: boolean;
@@ -52,6 +54,7 @@ export function AuthForm({ mode, registered = false }: AuthFormProps) {
       const result = (await response.json()) as {
         ok: boolean;
         id?: number;
+        role?: UserRole;
         message?: string;
       };
 
@@ -60,7 +63,7 @@ export function AuthForm({ mode, registered = false }: AuthFormProps) {
       }
 
       if (isLoginMode) {
-        router.push("/workspace");
+        router.push(result.role === "ADMIN" ? "/admin" : "/workspace");
         router.refresh();
         return;
       }
@@ -149,8 +152,8 @@ export function AuthForm({ mode, registered = false }: AuthFormProps) {
       {status ? <p className="status-text success">{status}</p> : null}
       {error ? <p className="status-text error">{error}</p> : null}
       <p className="field-hint">
-        로그인은 JSON 응답의 `token`을 읽고, 사용자 식별은 JWT payload의 `sub`
-        값을 사용해 연결합니다.
+        로그인 성공 시 JWT와 사용자 role을 함께 세션 쿠키에 저장하고, USER는
+        워크스페이스로, ADMIN은 관리자 페이지로 바로 분기합니다.
       </p>
     </section>
   );
