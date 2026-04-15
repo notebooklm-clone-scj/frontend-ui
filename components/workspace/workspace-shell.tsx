@@ -9,6 +9,7 @@ type WorkspaceShellProps = {
   activeNotebookId?: number;
   children: ReactNode;
   headerContent?: ReactNode;
+  compactTopbar?: boolean;
 };
 
 export function WorkspaceShell({
@@ -16,13 +17,14 @@ export function WorkspaceShell({
   activeNotebookId,
   children,
   headerContent,
+  compactTopbar = false,
 }: WorkspaceShellProps) {
   return (
     <main className="workspace-shell">
       <Sidebar activeNotebookId={activeNotebookId} notebooks={notebooks} />
 
       <section className="content-frame">
-        <header className="topbar">
+        <header className={`topbar ${compactTopbar ? "topbar-compact" : ""}`.trim()}>
           {headerContent ?? (
             <div className="topbar-copy">
               <h1>Research Workspace</h1>

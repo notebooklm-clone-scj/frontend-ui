@@ -201,8 +201,8 @@ export function ChatPanel({
   return (
     <article className="panel chat-panel">
       <div className="section-heading">
-        <div>
-          <span className="eyebrow">Notebook Chat</span>
+        <div className="sidebar-section-header">
+          <h3 className="panel-title">Notebook Chat</h3>
         </div>
       </div>
 

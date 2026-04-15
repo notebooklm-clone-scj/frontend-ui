@@ -65,7 +65,8 @@ export function CreateNotebookForm() {
       <div>
         <h3 className="panel-title">Create Notebook</h3>
         <p className="section-caption">
-          제목만 입력하면 Spring API로 생성 요청을 보냅니다.
+          제목만 입력하면 Spring API로 생성 요청을 보냅니다. 계정당 최대 2개까지
+          만들 수 있습니다.
         </p>
       </div>
       <input

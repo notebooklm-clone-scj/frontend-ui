@@ -27,6 +27,8 @@ export function NotebookStudio({
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null);
   const [documentsError, setDocumentsError] = useState<string | null>(null);
   const [isRefreshingDocuments, setIsRefreshingDocuments] = useState(false);
+  const [documentActionError, setDocumentActionError] = useState<string | null>(null);
+  const [isDeletingDocument, setIsDeletingDocument] = useState(false);
 
   const refreshDocuments = useCallback(async () => {
     setIsRefreshingDocuments(true);
@@ -113,11 +115,12 @@ export function NotebookStudio({
         </article>
 
         <article className="panel side-documents">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">Documents</span>
+          <div className="section-heading section-heading-aligned">
+            <div className="sidebar-section-header">
+              <h3 className="panel-title">Documents</h3>
             </div>
-            <div className="button-row">
+            <div className="section-heading-actions">
+              <span className="section-count">{documents.length}/3</span>
               <button
                 aria-label="문서 새로고침"
                 className="icon-button"
@@ -131,6 +134,9 @@ export function NotebookStudio({
           </div>
 
           {documentsError ? <p className="status-text error">{documentsError}</p> : null}
+          {documentActionError ? (
+            <p className="status-text error">{documentActionError}</p>
+          ) : null}
 
           {documents.length === 0 ? (
             <div className="empty-card">
@@ -144,31 +150,91 @@ export function NotebookStudio({
                 const isSelected = selectedDocumentId === document.id;
 
                 return (
-                  <button
+                  <article
                     className={`doc-card doc-select-card ${
                       isSelected ? "selected" : ""
                     }`.trim()}
                     key={document.id}
-                    onClick={() =>
-                      setSelectedDocumentId((currentSelectedId) =>
-                        currentSelectedId === document.id ? null : document.id,
-                      )
-                    }
-                    type="button"
                   >
-                    <strong>{document.filename}</strong>
-                    <div className="doc-meta-row">
-                      <span
-                        aria-label={isProcessing ? "PROCESSING" : "COMPLETED"}
-                        className={`status-dot ${isProcessing ? "processing" : "completed"}`.trim()}
-                        title={isProcessing ? "PROCESSING" : "COMPLETED"}
-                      />
-                      <span className="pill">{formatKoreanDate(document.createdAt)}</span>
-                      {document.totalPages > 0 ? (
-                        <span className="pill">{document.totalPages} pages</span>
-                      ) : null}
+                    <div className="doc-card-head">
+                      <strong>{document.filename}</strong>
+                      <button
+                        aria-label={`${document.filename} 삭제`}
+                        className="list-icon-button danger"
+                        disabled={isDeletingDocument}
+                        onClick={async (event) => {
+                          event.stopPropagation();
+                          setSelectedDocumentId(document.id);
+                          setDocumentActionError(null);
+
+                          const confirmed = window.confirm(
+                            `"${document.filename}" 문서를 삭제할까요?`,
+                          );
+
+                          if (!confirmed) {
+                            return;
+                          }
+
+                          setIsDeletingDocument(true);
+
+                          try {
+                            const response = await fetch(
+                              `/api/notebooks/${notebook.id}/documents/${document.id}`,
+                              {
+                                method: "DELETE",
+                              },
+                            );
+
+                            const result = (await response.json()) as {
+                              ok: boolean;
+                              message?: string;
+                            };
+
+                            if (!response.ok || !result.ok) {
+                              throw new Error(result.message ?? "문서 삭제에 실패했습니다.");
+                            }
+
+                            setSelectedDocumentId((currentSelectedId) =>
+                              currentSelectedId === document.id ? null : currentSelectedId,
+                            );
+                            await refreshDocuments();
+                          } catch (deleteError) {
+                            setDocumentActionError(
+                              deleteError instanceof Error
+                                ? deleteError.message
+                                : "문서 삭제 중 오류가 발생했습니다.",
+                            );
+                          } finally {
+                            setIsDeletingDocument(false);
+                          }
+                        }}
+                        type="button"
+                      >
+                        {isDeletingDocument && selectedDocumentId === document.id ? "…" : "×"}
+                      </button>
                     </div>
-                  </button>
+                    <button
+                      className="doc-card-body-button"
+                      onClick={() =>
+                        setSelectedDocumentId((currentSelectedId) =>
+                          currentSelectedId === document.id ? null : document.id,
+                        )
+                      }
+                      type="button"
+                    >
+                      <div className="doc-meta-row">
+                        <span
+                          aria-label={isProcessing ? "PROCESSING" : "COMPLETED"}
+                          className={`status-dot ${isProcessing ? "processing" : "completed"}`.trim()}
+                          title={isProcessing ? "PROCESSING" : "COMPLETED"}
+                        />
+                        <span className="pill">{formatKoreanDate(document.createdAt)}</span>
+                        {document.totalPages > 0 ? (
+                          <span className="pill">{document.totalPages} pages</span>
+                        ) : null}
+                      </div>
+                    </button>
+                  </article>
                 );
               })}
             </div>
