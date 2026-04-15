@@ -151,6 +151,32 @@ export async function createNotebook(title: string) {
   } satisfies NotebookCreateResponse;
 }
 
+export async function updateNotebookTitle(notebookId: number, title: string) {
+  const session = await requireSession();
+
+  const response = await coreApiFetch(`/api/v1/notebooks/${notebookId}`, {
+    method: "PATCH",
+    token: session.token,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ title }),
+  });
+
+  return response.text();
+}
+
+export async function deleteNotebook(notebookId: number) {
+  const session = await requireSession();
+
+  const response = await coreApiFetch(`/api/v1/notebooks/${notebookId}`, {
+    method: "DELETE",
+    token: session.token,
+  });
+
+  return response.text();
+}
+
 export async function fetchDocuments(notebookId: number, token?: string) {
   const response = await coreApiFetch(`/api/v1/notebooks/${notebookId}/documents`, {
     token,
@@ -200,6 +226,20 @@ export async function askNotebookQuestionForCurrentUser(
   });
 
   return (await response.json()) as NotebookChatResponse;
+}
+
+export async function deleteDocument(notebookId: number, documentId: number) {
+  const session = await requireSession();
+
+  const response = await coreApiFetch(
+    `/api/v1/notebooks/${notebookId}/documents/${documentId}`,
+    {
+      method: "DELETE",
+      token: session.token,
+    },
+  );
+
+  return response.text();
 }
 
 type AdminAiCallLogFilters = {

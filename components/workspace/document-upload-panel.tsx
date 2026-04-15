@@ -72,11 +72,13 @@ export function DocumentUploadPanel({
 
   return (
     <div className="form-grid">
-      <div>
-        <span className="eyebrow">Document Upload</span>
+      <div className="panel-section-copy">
+        <div className="sidebar-section-header">
+          <h3 className="panel-title">Document Upload</h3>
+        </div>
         <p className="helper-note">
           업로드 직후에는 문서가 먼저 생성되고, 요약은 문서 목록을 다시 불러오면서
-          반영됩니다.
+          반영됩니다. 노트북당 3개, 계정 전체 기준 5개까지만 등록할 수 있습니다.
         </p>
       </div>
 

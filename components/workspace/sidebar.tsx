@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CreateNotebookForm } from "@/components/workspace/create-notebook-form";
+import { NotebookSidebarItem } from "@/components/workspace/notebook-sidebar-item";
 import type { Notebook } from "@/lib/types";
 
 type SidebarProps = {
@@ -25,22 +26,20 @@ export function Sidebar({ notebooks, activeNotebookId }: SidebarProps) {
       </section>
 
       <section className="sidebar-section">
-        <h3>Notebooks</h3>
+        <div className="sidebar-section-header">
+          <h3>Notebooks</h3>
+          <span className="section-count">{notebooks.length}/2</span>
+        </div>
         <div className="sidebar-list">
           {notebooks.length === 0 ? (
             <p className="empty-subtle">생성된 노트북이 아직 없습니다.</p>
           ) : (
             notebooks.map((notebook) => (
-              <Link
-                className={`sidebar-link ${
-                  activeNotebookId === notebook.id ? "active" : ""
-                }`.trim()}
-                href={`/workspace/notebooks/${notebook.id}`}
+              <NotebookSidebarItem
+                isActive={activeNotebookId === notebook.id}
                 key={notebook.id}
-              >
-                <strong>{notebook.title}</strong>
-                <span>노트북 열기</span>
-              </Link>
+                notebook={notebook}
+              />
             ))
           )}
         </div>

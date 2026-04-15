@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { NotebookManageActions } from "@/components/workspace/notebook-manage-actions";
 import { NotebookStudio } from "@/components/workspace/notebook-studio";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import {
@@ -33,14 +34,15 @@ export default async function NotebookPage({ params }: NotebookPageProps) {
     <WorkspaceShell
       notebooks={notebooks}
       activeNotebookId={currentNotebook.id}
+      compactTopbar
       headerContent={
         <div className="topbar-copy">
-          <h1>{currentNotebook.title}</h1>
-          <div className="topbar-meta">
-            <span className="pill">문서 {documents.length}건</span>
-            <span className="pill">
-              요약 완료 {documents.filter((document) => document.summary).length}건
-            </span>
+          <div className="topbar-title-row">
+            <h1>{currentNotebook.title}</h1>
+            <NotebookManageActions
+              notebookId={currentNotebook.id}
+              title={currentNotebook.title}
+            />
           </div>
         </div>
       }
