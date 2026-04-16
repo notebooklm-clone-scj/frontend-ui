@@ -1,4 +1,9 @@
-import { requireAdminSession, requireSession } from "@/lib/auth/session";
+import { redirect } from "next/navigation";
+
+import {
+  requireAdminSession,
+  requireSession,
+} from "@/lib/auth/session";
 import type {
   AdminAiCallLogPage,
   AiRequestType,
@@ -14,6 +19,16 @@ import type {
 } from "@/lib/types";
 
 const FALLBACK_CORE_API_BASE_URL = "http://localhost:8080";
+
+class AuthenticationError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "AuthenticationError";
+  }
+}
 
 function sortDocumentsByNewest(documents: DocumentItem[]) {
   return [...documents].sort((left, right) => {
@@ -80,10 +95,24 @@ export async function coreApiFetch(
   });
 
   if (!response.ok) {
-    throw new Error(await parseErrorMessage(response));
+    const errorMessage = await parseErrorMessage(response);
+
+    if (response.status === 401 || response.status === 403) {
+      throw new AuthenticationError(errorMessage, response.status);
+    }
+
+    throw new Error(errorMessage);
   }
 
   return response;
+}
+
+async function redirectToLoginOnAuthError(error: unknown): Promise<never> {
+  if (error instanceof AuthenticationError) {
+    redirect("/api/auth/logout?redirectTo=/login");
+  }
+
+  throw error;
 }
 
 export async function signupViaCoreApi(payload: SignupPayload) {
@@ -194,21 +223,33 @@ export async function fetchChatHistory(notebookId: number, token?: string) {
 }
 
 export async function fetchNotebooksForCurrentUser() {
-  const session = await requireSession();
+  try {
+    const session = await requireSession();
 
-  return fetchNotebooks(session.userId, session.token);
+    return await fetchNotebooks(session.userId, session.token);
+  } catch (error) {
+    return redirectToLoginOnAuthError(error);
+  }
 }
 
 export async function fetchNotebookDocumentsForCurrentUser(notebookId: number) {
-  const session = await requireSession();
+  try {
+    const session = await requireSession();
 
-  return fetchDocuments(notebookId, session.token);
+    return await fetchDocuments(notebookId, session.token);
+  } catch (error) {
+    return redirectToLoginOnAuthError(error);
+  }
 }
 
 export async function fetchNotebookChatHistoryForCurrentUser(notebookId: number) {
-  const session = await requireSession();
+  try {
+    const session = await requireSession();
 
-  return fetchChatHistory(notebookId, session.token);
+    return await fetchChatHistory(notebookId, session.token);
+  } catch (error) {
+    return redirectToLoginOnAuthError(error);
+  }
 }
 
 export async function askNotebookQuestionForCurrentUser(
@@ -254,41 +295,45 @@ type AdminAiCallLogFilters = {
 export async function fetchAdminAiCallLogs(
   filters: AdminAiCallLogFilters = {},
 ) {
-  const session = await requireAdminSession();
-  const params = new URLSearchParams();
+  try {
+    const session = await requireAdminSession();
+    const params = new URLSearchParams();
 
-  if (typeof filters.success === "boolean") {
-    params.set("success", String(filters.success));
+    if (typeof filters.success === "boolean") {
+      params.set("success", String(filters.success));
+    }
+
+    if (filters.requestType) {
+      params.set("requestType", filters.requestType);
+    }
+
+    if (typeof filters.notebookId === "number") {
+      params.set("notebookId", String(filters.notebookId));
+    }
+
+    if (typeof filters.documentId === "number") {
+      params.set("documentId", String(filters.documentId));
+    }
+
+    if (typeof filters.page === "number") {
+      params.set("page", String(filters.page));
+    }
+
+    if (typeof filters.size === "number") {
+      params.set("size", String(filters.size));
+    }
+
+    const query = params.toString();
+    const path = query
+      ? `/api/v1/admin/ai-call-logs?${query}`
+      : "/api/v1/admin/ai-call-logs";
+
+    const response = await coreApiFetch(path, {
+      token: session.token,
+    });
+
+    return (await response.json()) as AdminAiCallLogPage;
+  } catch (error) {
+    return redirectToLoginOnAuthError(error);
   }
-
-  if (filters.requestType) {
-    params.set("requestType", filters.requestType);
-  }
-
-  if (typeof filters.notebookId === "number") {
-    params.set("notebookId", String(filters.notebookId));
-  }
-
-  if (typeof filters.documentId === "number") {
-    params.set("documentId", String(filters.documentId));
-  }
-
-  if (typeof filters.page === "number") {
-    params.set("page", String(filters.page));
-  }
-
-  if (typeof filters.size === "number") {
-    params.set("size", String(filters.size));
-  }
-
-  const query = params.toString();
-  const path = query
-    ? `/api/v1/admin/ai-call-logs?${query}`
-    : "/api/v1/admin/ai-call-logs";
-
-  const response = await coreApiFetch(path, {
-    token: session.token,
-  });
-
-  return (await response.json()) as AdminAiCallLogPage;
 }
