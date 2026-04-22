@@ -2,6 +2,9 @@
 
 import { ChangeEvent, FormEvent, useState } from "react";
 
+const MAX_UPLOAD_FILE_SIZE_MB = 2;
+const MAX_UPLOAD_FILE_SIZE_BYTES = MAX_UPLOAD_FILE_SIZE_MB * 1024 * 1024;
+
 type DocumentUploadPanelProps = {
   notebookId: number;
   onUploaded: (documentId: number) => void;
@@ -18,6 +21,17 @@ export function DocumentUploadPanel({
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const selectedFile = event.target.files?.[0] ?? null;
+
+    if (selectedFile && selectedFile.size > MAX_UPLOAD_FILE_SIZE_BYTES) {
+      setFile(null);
+      setStatus(null);
+      setError(
+        `무료 티어 환경에서는 ${MAX_UPLOAD_FILE_SIZE_MB}MB 이하 PDF만 업로드할 수 있습니다.`,
+      );
+      event.target.value = "";
+      return;
+    }
+
     setFile(selectedFile);
     setError(null);
     setStatus(null);
@@ -79,6 +93,7 @@ export function DocumentUploadPanel({
         <p className="helper-note">
           업로드 직후에는 문서가 먼저 생성되고, 요약은 문서 목록을 다시 불러오면서
           반영됩니다. 노트북당 3개, 계정 전체 기준 5개까지만 등록할 수 있습니다.
+          무료 티어 환경에서는 2MB 이하, 30페이지 이하 PDF 업로드를 권장합니다.
         </p>
       </div>
 
@@ -88,7 +103,9 @@ export function DocumentUploadPanel({
             <h3>{file ? file.name : "PDF 파일 선택"}</h3>
             <p className="helper-note">
               지금 구조는 Spring이 업로드 입구를 맡고, FastAPI가 백그라운드에서
-              분석을 완료하는 방식입니다.
+              분석을 완료하는 방식입니다. 대용량 문서는 Gemini Embedding 무료
+              티어 처리량 제한으로 실패할 수 있어, 페이지가 많은 문서는 분할해서
+              올리는 편이 안전합니다.
             </p>
           </div>
           <input accept="application/pdf" onChange={handleFileChange} type="file" />

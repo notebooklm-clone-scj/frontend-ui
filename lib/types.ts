@@ -45,6 +45,7 @@ export type DocumentItem = {
   filename: string;
   summary: string | null;
   totalPages: number;
+  status: "PROCESSING" | "COMPLETED" | "FAILED";
   createdAt: string;
 };
 

@@ -889,6 +889,13 @@ textarea {
     0 0 12px rgba(213, 154, 61, 0.45);
 }
 
+.status-dot.failed {
+  background: #d95c4f;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.55),
+    0 0 12px rgba(217, 92, 79, 0.45);
+}
+
 .insight-card {
   align-content: start;
 }

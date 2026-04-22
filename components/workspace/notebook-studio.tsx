@@ -14,7 +14,7 @@ type NotebookStudioProps = {
 };
 
 function isDocumentStillProcessing(document: DocumentItem) {
-  return !document.summary;
+  return document.status === "PROCESSING";
 }
 
 export function NotebookStudio({
@@ -146,7 +146,8 @@ export function NotebookStudio({
           ) : (
             <div className="doc-list">
               {documents.map((document) => {
-                const isProcessing = isDocumentStillProcessing(document);
+                const isProcessing = document.status === "PROCESSING";
+                const isFailed = document.status === "FAILED";
                 const isSelected = selectedDocumentId === document.id;
 
                 return (
@@ -224,14 +225,21 @@ export function NotebookStudio({
                     >
                       <div className="doc-meta-row">
                         <span
-                          aria-label={isProcessing ? "PROCESSING" : "COMPLETED"}
-                          className={`status-dot ${isProcessing ? "processing" : "completed"}`.trim()}
-                          title={isProcessing ? "PROCESSING" : "COMPLETED"}
+                          aria-label={document.status}
+                          className={`status-dot ${
+                            isFailed
+                              ? "failed"
+                              : isProcessing
+                                ? "processing"
+                                : "completed"
+                          }`.trim()}
+                          title={document.status}
                         />
                         <span className="pill">{formatKoreanDate(document.createdAt)}</span>
                         {document.totalPages > 0 ? (
                           <span className="pill">{document.totalPages} pages</span>
                         ) : null}
+                        {isFailed ? <span className="pill">분석 실패</span> : null}
                       </div>
                     </button>
                   </article>
@@ -254,21 +262,15 @@ export function NotebookStudio({
                 <strong>{selectedDocument.filename}</strong>
                 <div className="doc-meta-row">
                   <span
-                    aria-label={
-                      isDocumentStillProcessing(selectedDocument)
-                        ? "PROCESSING"
-                        : "COMPLETED"
-                    }
+                    aria-label={selectedDocument.status}
                     className={`status-dot ${
-                      isDocumentStillProcessing(selectedDocument)
-                        ? "processing"
-                        : "completed"
+                      selectedDocument.status === "FAILED"
+                        ? "failed"
+                        : selectedDocument.status === "PROCESSING"
+                          ? "processing"
+                          : "completed"
                     }`.trim()}
-                    title={
-                      isDocumentStillProcessing(selectedDocument)
-                        ? "PROCESSING"
-                        : "COMPLETED"
-                    }
+                    title={selectedDocument.status}
                   />
                   <span className="pill">
                     {formatKoreanDate(selectedDocument.createdAt)}
@@ -278,10 +280,15 @@ export function NotebookStudio({
                       {selectedDocument.totalPages} pages
                     </span>
                   ) : null}
+                  {selectedDocument.status === "FAILED" ? (
+                    <span className="pill">분석 실패</span>
+                  ) : null}
                 </div>
                 <p className="doc-summary">
-                  {selectedDocument.summary ??
-                    "요약이 아직 준비되지 않았습니다. 비동기 분석이 완료되면 이 영역에 내용이 채워집니다."}
+                  {selectedDocument.status === "FAILED"
+                    ? "문서 분석에 실패했습니다. 무료 티어 처리량 제한이나 문서 크기 때문에 실패할 수 있으니, 문서를 삭제한 뒤 더 작은 PDF로 다시 업로드해 주세요."
+                    : selectedDocument.summary ??
+                      "요약이 아직 준비되지 않았습니다. 비동기 분석이 완료되면 이 영역에 내용이 채워집니다."}
                 </p>
               </article>
             )}
