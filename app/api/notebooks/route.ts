@@ -6,7 +6,7 @@ import { requireUserSession } from "@/lib/auth/session";
 export async function GET() {
   try {
     const session = await requireUserSession();
-    const notebooks = await fetchNotebooks(session.userId, session.token);
+    const notebooks = await fetchNotebooks(session.token);
 
     return NextResponse.json({ ok: true, notebooks });
   } catch (error) {
