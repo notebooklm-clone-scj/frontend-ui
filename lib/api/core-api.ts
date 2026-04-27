@@ -149,8 +149,8 @@ function parseNotebookIdFromMessage(message: string) {
   return Number(match[1]);
 }
 
-export async function fetchNotebooks(userId: number, token?: string) {
-  const response = await coreApiFetch(`/api/v1/notebooks/user/${userId}`, {
+export async function fetchNotebooks(token?: string) {
+  const response = await coreApiFetch("/api/v1/notebooks", {
     token,
   });
 
@@ -167,7 +167,6 @@ export async function createNotebook(title: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      userId: session.userId,
       title,
     }),
   });
@@ -226,7 +225,7 @@ export async function fetchNotebooksForCurrentUser() {
   try {
     const session = await requireSession();
 
-    return await fetchNotebooks(session.userId, session.token);
+    return await fetchNotebooks(session.token);
   } catch (error) {
     return redirectToLoginOnAuthError(error);
   }
