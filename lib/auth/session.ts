@@ -4,6 +4,10 @@ import { redirect } from "next/navigation";
 import type { Session, UserRole } from "@/lib/types";
 
 const SESSION_COOKIE_NAME = "notebooklm_session";
+const isSecureCookieEnabled =
+  process.env.SESSION_COOKIE_SECURE === "true" ||
+  (process.env.SESSION_COOKIE_SECURE == null &&
+    process.env.NODE_ENV === "production");
 
 function isUserRole(value: unknown): value is UserRole {
   return value === "USER" || value === "ADMIN";
@@ -81,7 +85,7 @@ export async function saveSession(session: Session) {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecureCookieEnabled,
     maxAge: 60 * 60 * 24,
   });
 }
