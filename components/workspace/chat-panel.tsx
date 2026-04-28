@@ -70,13 +70,15 @@ export function ChatPanel({
       throw new Error(result.message ?? "채팅 이력을 불러오지 못했습니다.");
     }
 
-    onHistoryChange(result.history);
+    const nextHistory = result.history;
+
+    onHistoryChange(nextHistory);
 
     // 서버에서 내려준 references가 있으면 임시 fallback 맵은 비워도 됩니다.
     setReferenceMap((currentMap) => {
       const nextMap = { ...currentMap };
 
-      for (const item of result.history) {
+      for (const item of nextHistory) {
         const itemKey = getHistoryItemKey(item);
 
         if (item.references?.length) {
@@ -87,7 +89,7 @@ export function ChatPanel({
       return nextMap;
     });
 
-    return result.history;
+    return nextHistory;
   }
 
   function attachReferencesToHistory(
