@@ -26,9 +26,35 @@ function getHistoryItemKey(item: ChatHistoryItem) {
 
 function toHistoryReferences(chunks: ReferenceChunk[]): ChatHistoryReference[] {
   return chunks.map((chunk) => ({
+    documentId: chunk.document_id,
+    documentTitle: chunk.document_title,
+    sectionTitle: chunk.section_title,
     pageNumber: chunk.page_number,
+    chunkIndex: chunk.chunk_index,
+    pageChunkIndex: chunk.page_chunk_index,
     content: chunk.content,
   }));
+}
+
+function getReferenceTitle(chunk: ChatHistoryReference) {
+  const documentTitle = chunk.documentTitle ?? "문서명 없음";
+  const sectionTitle = chunk.sectionTitle ? ` · ${chunk.sectionTitle}` : "";
+
+  return `${documentTitle}${sectionTitle}`;
+}
+
+function getReferenceMeta(chunk: ChatHistoryReference) {
+  const parts = [`${chunk.pageNumber} page`];
+
+  if (typeof chunk.chunkIndex === "number") {
+    parts.push(`문서 청크 ${chunk.chunkIndex + 1}`);
+  }
+
+  if (typeof chunk.pageChunkIndex === "number") {
+    parts.push(`페이지 청크 ${chunk.pageChunkIndex + 1}`);
+  }
+
+  return parts.join(" · ");
 }
 
 export function ChatPanel({
@@ -249,9 +275,14 @@ export function ChatPanel({
                     {references.map((chunk, referenceIndex) => (
                       <article
                         className="reference-card"
-                        key={`${chunk.pageNumber}-${referenceIndex}`}
+                        key={`${chunk.documentId ?? "document"}-${chunk.pageNumber}-${
+                          chunk.chunkIndex ?? referenceIndex
+                        }`}
                       >
-                        <strong>{chunk.pageNumber} page</strong>
+                        <div className="reference-card-head">
+                          <strong>{getReferenceTitle(chunk)}</strong>
+                          <span>{getReferenceMeta(chunk)}</span>
+                        </div>
                         <p>{chunk.content}</p>
                       </article>
                     ))}

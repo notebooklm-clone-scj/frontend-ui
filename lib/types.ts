@@ -54,7 +54,12 @@ export type DocumentUploadResponse = {
 };
 
 export type ChatHistoryReference = {
+  documentId?: number | null;
+  documentTitle?: string | null;
+  sectionTitle?: string | null;
   pageNumber: number;
+  chunkIndex?: number | null;
+  pageChunkIndex?: number | null;
   content: string;
 };
 
@@ -66,7 +71,12 @@ export type ChatHistoryItem = {
 };
 
 export type ReferenceChunk = {
+  document_id?: number | null;
+  document_title?: string | null;
+  section_title?: string | null;
   page_number: number;
+  chunk_index?: number | null;
+  page_chunk_index?: number | null;
   content: string;
 };
 
